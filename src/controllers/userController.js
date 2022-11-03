@@ -34,6 +34,7 @@ const createUser = async function(req,res){
 const loginUser = async function(req, res){
     try{
         let body = req.body
+        let token = req.header("Authorization","Bearer Token")
         let {email, password} = body
 
         if(!email) return res.status(400).send({status: false, message: "Email is mandatory!"})
@@ -41,6 +42,7 @@ const loginUser = async function(req, res){
         if(!existingEmail) return res.status(404).send({status: false, message: "User not found!"})
 
         if(!password) return res.status(400).send({status: false, message: "Password is required!"})
+        if(!token){
         if(password !== existingEmail.password){
             return res.status(401).send({status: false, message: "Wrong password!"})
         }else{
@@ -55,6 +57,13 @@ const loginUser = async function(req, res){
             )
     
             res.status(200).send({status: true, message: "User logged in successfully!", data: {userId: existingEmail._id, token: token}})
+        }
+        }else{
+            let splittoken = token.split(" ")
+            let newToken = jwt.decode(splittoken[1],"Auth0")
+            newToken.exp = Date.now()
+            console.log(newToken)
+            return res.status(200).send({status: true, message: "User logged out successfully!"})
         }
     }catch(error){
         res.status(500).send({status: false, message: error.message})
@@ -98,12 +107,13 @@ const getUser = async function (req, res){
 const logoutUser = async function(req, res){
     try{
         let token = req.header("Authorization","Bearer Token")
+        console.log(token)
 
     if(!token)return res.status(401).send({status:false, message:"Please enter token in bearer token"});
     let splittoken = token.split(" ")
+    console.log(splittoken)
     
-       let latest = jwt.verify(splittoken[1],"Auth0")
-        console.log(2)
+    //    let latest = jwt.verify(splittoken[1],"Auth0")
     }catch(error){
         res.status.send(500).send({status: false, message: error.message})
     }
